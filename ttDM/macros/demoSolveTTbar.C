@@ -65,7 +65,7 @@ void makeHTML(const string outputDir);
 
 //=== MAIN MACRO =================================================================================================
 
-void demoSolveTTbarMT()
+void demoSolveTTbar()
 {
   bool verbose = false;
 
