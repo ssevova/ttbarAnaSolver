@@ -217,6 +217,7 @@ void demoSolveTTbar()
 
   TFile *infile=0;
   TTree *intree=0;
+  double numsol=0; double nosol=0;
   for(unsigned int isam=0; isam<samplev.size(); isam++) {
     CSample *sample = samplev[isam];
     cout << "Sample: " << sample->label << endl;
@@ -437,11 +438,11 @@ void demoSolveTTbar()
 	JetResolutions myjer;
 	TMatrixD covMat(2,2);
 	//MT according to http://cms.cern.ch/iCMS/analysisadmin/cadilines?line=SMP-12-011&tp=an&id=862&ancode=SMP-12-011 recoil is defined as vectorial negative sum of everything once charged lepton(s) is subtracted for W/Z events. So for ttbar event I need to subtract all the visible objects => MET+visible objects
-	myjer.covMatrix(covMat,(oMET-olep1-olep2-oB1-oB2).Pt(),(oMET-olep1-olep2-oB1-oB2).Phi(),2);
+	// myjer.covMatrix(covMat,(oMET-olep1-olep2-oB1-oB2).Pt(),(oMET-olep1-olep2-oB1-oB2).Phi(),2);
 	// SS
-	covMat.Print();
+	if(verbose) covMat.Print();
 	//
-	// myjer.covMatrix(covMat,(oMET+olep1+olep2+oB1+oB2).Pt(),(oMET+olep1+olep2+oB1+oB2).Phi(),2); //to be plotted
+	myjer.covMatrix(covMat,(oMET+olep1+olep2+oB1+oB2).Pt(),(oMET+olep1+olep2+oB1+oB2).Phi(),2); //to be plotted
 	//	cout.flush();
 
 	double b1ptsigma  = myjer.getPtSigmaSmear(oB1, 10); 
@@ -539,34 +540,25 @@ void demoSolveTTbar()
           genpar23->SetPz(mysmear->Gaus(genpar23_pz_save, 0.03*genpar23_pz_save));
           genpar23->SetE(mysmear->Gaus(genpar23_e_save, 0.03*genpar23_e_save));
 	  */
-	  /*  
-	  vb1.SetPx(mysmear->Gaus(oB1.Px(), b1ptsigma*oB1.Px()));
-	  vb1.SetPy(mysmear->Gaus(oB1.Py(), b1ptsigma*oB1.Py()));
-	  vb1.SetPz(mysmear->Gaus(oB1.Pz(), b1ptsigma*oB1.Pz()));
-	  vb2.SetPx(mysmear->Gaus(oB2.Px(), b2ptsigma*oB2.Px()));
-	  vb2.SetPy(mysmear->Gaus(oB2.Py(), b2ptsigma*oB2.Py()));
-	  vb2.SetPz(mysmear->Gaus(oB2.Pz(), b2ptsigma*oB2.Pz()));
-	  */	    
 
 	  vb1.SetPtEtaPhiM(mysmear->Gaus(oB1.Pt(), 2*b1ptsigma*oB1.Pt()),oB1.Eta(),mysmear->Gaus(oB1.Phi(),2*b1phisigma*oB1.Phi()),oB1.M());
 	  vb2.SetPtEtaPhiM(mysmear->Gaus(oB2.Pt(), 2*b2ptsigma*oB2.Pt()),oB2.Eta(),mysmear->Gaus(oB2.Phi(),2*b2phisigma*oB2.Phi()),oB2.M());
 	  double err_b1_pt  = (vb1.Pt() - oB1.Pt())/(2*b1ptsigma*oB1.Pt());
 	  double err_b1_phi = (vb1.Phi() - oB1.Phi())/(2*b1ptsigma*oB1.Phi());
-	  double err_b2_pt  = (vb2.Pt() - oB2.Pt())/(2*b1ptsigma*oB2.Pt());
-	  double err_b2_phi = (vb2.Phi() - oB2.Phi())/(2*b1ptsigma*oB2.Phi());
+	  double err_b2_pt  = (vb2.Pt() - oB2.Pt())/(2*b2ptsigma*oB2.Pt());
+	  double err_b2_phi = (vb2.Phi() - oB2.Phi())/(2*b2ptsigma*oB2.Phi());
 
 	  // KH smear MET
-	  iU = oMET-olep1-olep2-vb1-vb2; //MT: replaced by line below (+ instead of -)
-	  // iU = oMET+olep1+olep2+vb1+vb2; 
+	  // iU = oMET-olep1-olep2-vb1-vb2; //MT: replaced by line below (+ instead of -)
+	  iU = oMET+olep1+olep2+vb1+vb2; 
 	  double sX,sY;
 	  myjer.getSmearedMET(&iU, &covMat, &oU, sX, sY);// - olep1 - olep2;
 	  if(verbose){
 	    std::cout << "sX: " << sX << "\tsY: " << sY << std::endl;
 	  }
-	  
-	  //  vMET = oU-olep1-olep2-vb1-vb2;
-	  vMET = oU+olep1+olep2+vb1+vb2; //MT: replaced by line below (- instead of +)
-	  //  vMET = oU-olep1-olep2-vb1-vb2;
+	  // vMET = oU+olep1+olep2+vb1+vb2; //MT: replaced by line below (- instead of +)
+	  vMET = oU-olep1-olep2-vb1-vb2;
+
 	  if(verbose){
 	    std::cout << "vMET.Pt(): " << vMET.Pt() << std::endl;
 	    std::cout << "vMET.Phi(): " << vMET.Phi() << std::endl;
@@ -575,13 +567,7 @@ void demoSolveTTbar()
 	  double toterr = sqrt( err_b1_pt*err_b1_pt + err_b1_phi*err_b1_phi + err_b2_pt*err_b2_pt + err_b2_phi*err_b2_phi
 				+ sX*sX + sY*sY );
 
-	  /*
-	    vMET.SetPx(mysmear->Gaus(oMET.Px(),0.20*oMET.Px()));
-	    vMET.SetPy(mysmear->Gaus(oMET.Py(),0.20*oMET.Py()));
-	    vMET.SetPz(mysmear->Gaus(oMET.Pz(),0.20*oMET.Pz()));
-	    vMET.SetE(mysmear->Gaus(oMET.E(),0.20*oMET.E()));
-	  */
-	  
+	  	  
 	  for(int i=0; i<2; i++){
 	    if(i==1 && sol.numSol!=0) continue; //MT: what's the reason for this??? SS: association of b jet to top decay in following lines => only proceed with 2nd iteration of loop if no solution was found for the first combination 
 	    
@@ -618,7 +604,7 @@ void demoSolveTTbar()
 	      if(verbose){
 		cout<<"SORTING SOL by WEIGHT from low to high"<<endl;
 		cout<<"-------UNSORTED-----"<<endl;
-		for(unsigned int i=0; i<sol.numSol; i++)
+		for(int i=0; i<sol.numSol; i++)
 		  cout<<i<<" weight "<<sol.weight[i]<<endl;
 	      }
       
@@ -638,7 +624,7 @@ void demoSolveTTbar()
 	      
 	      if(verbose){
 		cout<<"-------SORTED-----"<<endl;
-		for(unsigned int i=0; i<sol.numSol; i++)
+		for(int i=0; i<sol.numSol; i++)
 		  cout<<i<<" weight "<<sol.weight[i]<<" "<<(int)(100000*sol.weight[i])<<endl;
 	      }
 	      
@@ -745,27 +731,32 @@ void demoSolveTTbar()
 	  hMTop2Reco[ich][isam] ->Fill(avg_top2_recoM);
 	  
 	  hNPass[ich][isam]->Fill(1);
+	  numsol++;
 	} else {
 	  hNPass[ich][isam]->Fill(0);
+	  nosol++;
 	}
 
 	hNSol[ich][isam]->Fill(sol.numSol);
 	
+       
 	if(sol.numSol==0){ nsol0++; }//isol=0; }
 	if(sol.numSol==2){ nsol2++; }//isol=1; }
 	if(sol.numSol==4){ nsol4++; }//isol=2; }
 	
 	nevts++;
-	cout << "nevts         : " << nevts << endl;
-	cout << "nsol          : " << sol.numSol << endl;
+	string issol;
+	issol = ngoodtrials > 0 ? "yes" : "no";
+	cout << "evt           : " << nevts << endl;
+	cout << "solution?     : " << issol << endl;
 	cout << "found on trial: " << foundtrial << endl;
-	
+	if(issol.compare("yes")==0) cout << "reco mtop1 : " << avg_top1_recoM << " reco mtop2 : " << avg_top2_recoM << endl;
       }
-      
-      cout << "O solutions: " << nsol0 << endl;
-      cout << "2 solutions: " << nsol2 << endl;
-      cout << "4 solutions: " << nsol4 << endl;
-      
+      cout << "========== Output Stats ==========" << endl;
+
+      cout << "yes solution: " << numsol << endl;
+      cout << "no solution : " << nosol << endl; 
+      cout << "efficiency  : " << numsol/(numsol+nosol) << endl;
       delete infile;
       infile=0;
       intree=0;      
