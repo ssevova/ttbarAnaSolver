@@ -275,6 +275,9 @@ void JetResolutions::getSmearedMET(const TLorentzVector* iU, const TMatrixD* Cov
   
   oU->SetX(metX);
   oU->SetY(metY);  
+  // SS
+  sigmaX = sqrt((*CovMat)(0,0));
+  sigmaY = sqrt((*CovMat)(1,1));
 
 }
 
