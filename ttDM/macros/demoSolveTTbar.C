@@ -132,6 +132,7 @@ void demoSolveTTbar()
   vector<TH1D*> hB2PtErr[3];
   vector<TH1D*> hMETxErr[3];
   vector<TH1D*> hMETyErr[3];
+  vector<TH1D*> hMETshift[3];
   vector<TH1D*> hMTop1Reco[3], hMTop2Reco[3];
   vector<TH1D*> hMTop1Gen[3],  hMTop2Gen[3];
   vector<TH1D*> hNu1Pt[3], hNu2Pt[3];
@@ -167,8 +168,9 @@ void demoSolveTTbar()
       sprintf(hname,"hTotErr_%i_%i",ich,isam);  hTotErr[ich].push_back(new TH1D(hname,"",100,0,10)); hTotErr[ich][isam]->Sumw2();
       sprintf(hname,"hB1PtErr_%i_%i",ich,isam);  hB1PtErr[ich].push_back(new TH1D(hname,"",100,-10,10)); hB1PtErr[ich][isam]->Sumw2();
       sprintf(hname,"hB2PtErr_%i_%i",ich,isam);  hB2PtErr[ich].push_back(new TH1D(hname,"",100,-10,10)); hB2PtErr[ich][isam]->Sumw2();
-      sprintf(hname,"hMETxErr_%i_%i",ich,isam);  hMETxErr[ich].push_back(new TH1D(hname,"",100,-10,10)); hMETxErr[ich][isam]->Sumw2();
-      sprintf(hname,"hMETyErr_%i_%i",ich,isam);  hMETyErr[ich].push_back(new TH1D(hname,"",100,-10,10)); hMETyErr[ich][isam]->Sumw2();
+      sprintf(hname,"hMETxErr_%i_%i",ich,isam);  hMETxErr[ich].push_back(new TH1D(hname,"",50,-5,5)); hMETxErr[ich][isam]->Sumw2();
+      sprintf(hname,"hMETyErr_%i_%i",ich,isam);  hMETyErr[ich].push_back(new TH1D(hname,"",50,-5,5)); hMETyErr[ich][isam]->Sumw2();
+      sprintf(hname,"hMETshift_%i_%i",ich,isam); hMETshift[ich].push_back(new TH1D(hname,"",100,-1,1)); hMETshift[ich][isam]->Sumw2();
       sprintf(hname,"hMTop1Reco_%i_%i",ich,isam);  hMTop1Reco[ich].push_back(new TH1D(hname,"",20,150,190)); hMTop1Reco[ich][isam]->Sumw2();
       sprintf(hname,"hMTop1Gen_%i_%i",ich,isam);   hMTop1Gen[ich].push_back(new TH1D(hname,"",20,150,190));  hMTop1Gen[ich][isam]->Sumw2();
       sprintf(hname,"hMTop2Reco_%i_%i",ich,isam);  hMTop2Reco[ich].push_back(new TH1D(hname,"",20,150,190)); hMTop2Reco[ich][isam]->Sumw2();
@@ -183,7 +185,6 @@ void demoSolveTTbar()
       sprintf(hname,"hLep2Pt_%i_%i",ich,isam);      hLep2Pt[ich].push_back(new TH1D(hname,"",25,0,150)); hLep2Pt[ich][isam]->Sumw2();
       sprintf(hname,"hB1Pt_%i_%i",ich,isam);      hB1Pt[ich].push_back(new TH1D(hname,"",25,0,150)); hB1Pt[ich][isam]->Sumw2();
       sprintf(hname,"hB2Pt_%i_%i",ich,isam);      hB2Pt[ich].push_back(new TH1D(hname,"",25,0,150)); hB2Pt[ich][isam]->Sumw2();
-
 
     }
   }
@@ -416,8 +417,6 @@ void demoSolveTTbar()
 	l2 = ttbarCandidate::ttbarCandidateParticle(vLep2_GM,0);
 	b2 = ttbarCandidate::ttbarCandidateParticle(vB2_GM,0);
 	*/
-	/*
-	*/
 
 	cout << "gen id 11: "<<genId11<<endl;
 	cout << "gen id 21: "<<genId21<<endl;
@@ -426,10 +425,10 @@ void demoSolveTTbar()
 
 	// save original 4-vecs before smearing
 	TLorentzVector olep1, olep2, oB1, oB2, oMET;
-	olep1.SetPtEtaPhiM(lep1->Pt(), lep1->Eta(), lep1->Phi(), lep1->M());//genpar11->Pt(), genpar11->Eta(), genpar11->Phi(), genpar11->M());//
-	olep2.SetPtEtaPhiM(lep2->Pt(), lep2->Eta(), lep2->Phi(), lep2->M());//genpar21->Pt(), genpar21->Eta(), genpar21->Phi(), genpar21->M());//
-	oB1.SetPtEtaPhiM(vb1.Pt(), vb1.Eta(), vb1.Phi(), vb1.M());//genpar13->Pt(), genpar13->Eta(), genpar13->Phi(), genpar13->M());//
-	oB2.SetPtEtaPhiM(vb2.Pt(), vb2.Eta(), vb2.Phi(), vb2.M());//genpar23->Pt(), genpar23->Eta(), genpar23->Phi(), genpar23->M());//
+	olep1.SetPtEtaPhiM(lep1->Pt(), lep1->Eta(), lep1->Phi(), lep1->M());
+	olep2.SetPtEtaPhiM(lep2->Pt(), lep2->Eta(), lep2->Phi(), lep2->M());
+	oB1.SetPtEtaPhiM(vb1.Pt(), vb1.Eta(), vb1.Phi(), vb1.M());
+	oB2.SetPtEtaPhiM(vb2.Pt(), vb2.Eta(), vb2.Phi(), vb2.M());
 	oMET.SetPtEtaPhiM(vMET.Pt(), vMET.Eta(), vMET.Phi(), vMET.M());
 
 
@@ -477,13 +476,15 @@ void demoSolveTTbar()
         double genpar23_py_save = genpar23->Py();
         double genpar23_pz_save = genpar23->Pz();
         double genpar23_e_save  = genpar23->E();
+
 	//RECO candidates
 	l1 = ttbarCandidate::ttbarCandidateParticle(*lep1,0);
 	l2 = ttbarCandidate::ttbarCandidateParticle(*lep2,0);
 
 	TLorentzVector top1vec =  *genpar11 + *genpar12 + *genpar13;//*genparTop1;//
 	TLorentzVector top2vec =  *genpar21 + *genpar22 + *genpar23;//*genparTop2;//
-	std::cout << "top1vec.M(): " << top1vec.M() << ", top2vec.M(): " << top2vec.M() << std::endl;
+	std::cout << "top1vec.M(): " << top1vec.M() << "\ttop2vec.M(): " << top2vec.M() << std::endl;
+
 	hNu1GenPt[ich][isam]  ->Fill(genpar22->Pt());
 	hNu2GenPt[ich][isam]  ->Fill(genpar12->Pt());
 	hMTop1Gen[ich][isam]  ->Fill(top1vec.M());
@@ -491,8 +492,8 @@ void demoSolveTTbar()
 	hTopPtGen[ich][isam]  ->Fill(top1vec.Pt());
 
 	TLorentzVector  iU, oU;
-	std::cout << "oMET.Pt(): " << oMET.Pt() << std::endl;
-	std::cout << "oMET.Phi(): " << oMET.Phi() << std::endl;
+	std::cout << "oMET.Pt() : " << oMET.Pt() << "\toMET.Phi(): " << oMET.Phi() << std::endl;
+
 	int ngoodtrials=0;
 	double avg_recotop_pt=0;
 	double avg_mtt = 0;
@@ -502,6 +503,10 @@ void demoSolveTTbar()
 	double avg_nu2_e =0;
 	double avg_nu1_pt =0;
 	double avg_nu2_pt =0;
+	double avg_nu1_phi=0;
+	double avg_nu2_phi=0;
+	double avg_nu1_eta=0;
+	double avg_nu2_eta=0;
 	double avg_sol_w =0;
 	double avg_toterr =0;
 	double avg_top1_recoM =0;
@@ -543,6 +548,11 @@ void demoSolveTTbar()
 
 	  vb1.SetPtEtaPhiM(mysmear->Gaus(oB1.Pt(), 2*b1ptsigma*oB1.Pt()),oB1.Eta(),mysmear->Gaus(oB1.Phi(),2*b1phisigma*oB1.Phi()),oB1.M());
 	  vb2.SetPtEtaPhiM(mysmear->Gaus(oB2.Pt(), 2*b2ptsigma*oB2.Pt()),oB2.Eta(),mysmear->Gaus(oB2.Phi(),2*b2phisigma*oB2.Phi()),oB2.M());
+
+	  /*	  
+	  vb1.SetPtEtaPhiM(oB1.Pt(), oB1.Phi(), oB1.Eta(), oB1.M());
+	  vb2.SetPtEtaPhiM(oB2.Pt(), oB2.Phi(), oB2.Eta(), oB2.M());
+	  */
 	  double err_b1_pt  = (vb1.Pt() - oB1.Pt())/(2*b1ptsigma*oB1.Pt());
 	  double err_b1_phi = (vb1.Phi() - oB1.Phi())/(2*b1ptsigma*oB1.Phi());
 	  double err_b2_pt  = (vb2.Pt() - oB2.Pt())/(2*b2ptsigma*oB2.Pt());
@@ -553,21 +563,26 @@ void demoSolveTTbar()
 	  iU = oMET+olep1+olep2+vb1+vb2; 
 	  double sX,sY;
 	  myjer.getSmearedMET(&iU, &covMat, &oU, sX, sY);// - olep1 - olep2;
+
 	  if(verbose){
 	    std::cout << "sX: " << sX << "\tsY: " << sY << std::endl;
 	  }
 	  // vMET = oU+olep1+olep2+vb1+vb2; //MT: replaced by line below (- instead of +)
 	  vMET = oU-olep1-olep2-vb1-vb2;
 
+	  //SS: error on metx and mety should be difference wrt original / sigma 
+	  double err_metx = (oMET.Px() - vMET.Px())/sX;
+	  double err_mety = (oMET.Py() - vMET.Py())/sY;
+
 	  if(verbose){
-	    std::cout << "vMET.Pt(): " << vMET.Pt() << std::endl;
-	    std::cout << "vMET.Phi(): " << vMET.Phi() << std::endl;
+	    cout << "vMET.Pt(): " << vMET.Pt() << endl;
+	    cout << "vMET.Phi(): " << vMET.Phi() << endl;
 	  }
 
 	  double toterr = sqrt( err_b1_pt*err_b1_pt + err_b1_phi*err_b1_phi + err_b2_pt*err_b2_pt + err_b2_phi*err_b2_phi
-				+ sX*sX + sY*sY );
+				// + sX*sX + sY*sY );
+				+ err_metx*err_metx + err_mety*err_mety );
 
-	  	  
 	  for(int i=0; i<2; i++){
 	    if(i==1 && sol.numSol!=0) continue; //MT: what's the reason for this??? SS: association of b jet to top decay in following lines => only proceed with 2nd iteration of loop if no solution was found for the first combination 
 	    
@@ -611,8 +626,6 @@ void demoSolveTTbar()
 	      // sort solutions according to weight
 	      float temp_solw=-999; TLorentzVector temp_vNu1, temp_vNu2; float temp_topm1, temp_topm2;
 	      for(int i=0; i < sol.numSol; i++){
-		//		for(int j=0; j < sol.numSol; j++){
-		//if(sol.weight[i] < sol.weight[j]){
 		for(int j=i+1; j < sol.numSol; j++){
 		  if(sol.weight[i] > sol.weight[j]){
 		    temp_solw = sol.weight[i];     temp_vNu1 = sol.nu1[i];  temp_vNu2 = sol.nu2[i];  temp_topm1 = sol.mass1[i];   temp_topm2 = sol.mass2[i];
@@ -675,12 +688,16 @@ void demoSolveTTbar()
 	      avg_nu2_e += sol.nu2[sol.numSol-1].E();
 	      avg_nu1_pt += sol.nu1[sol.numSol-1].Pt();
 	      avg_nu2_pt += sol.nu2[sol.numSol-1].Pt();
+	      avg_nu1_phi += sol.nu1[sol.numSol-1].Phi();
+	      avg_nu2_phi += sol.nu2[sol.numSol-1].Phi();
+	      avg_nu1_eta += sol.nu1[sol.numSol-1].Eta();
+	      avg_nu2_eta += sol.nu2[sol.numSol-1].Eta();
 	      avg_sol_w += sol.weight[sol.numSol-1];
 	      avg_toterr += toterr;
 	      avg_b1pt_err += err_b1_pt;
 	      avg_b2pt_err += err_b2_pt;
-	      avg_metx_err += sX;
-	      avg_mety_err += sY;
+	      avg_metx_err += err_metx;//sX;
+	      avg_mety_err += err_mety;//sY;
 	      avg_top1_recoM += sol.mass1[sol.numSol-1];
 	      avg_top2_recoM += sol.mass2[sol.numSol-1];
 
@@ -704,6 +721,10 @@ void demoSolveTTbar()
 	  avg_nu2_e /= ngoodtrials;
 	  avg_nu1_pt /= ngoodtrials;
 	  avg_nu2_pt /= ngoodtrials; 
+	  avg_nu1_phi /= ngoodtrials;
+	  avg_nu2_phi /= ngoodtrials;
+	  avg_nu1_eta /= ngoodtrials;
+	  avg_nu2_eta /= ngoodtrials;
 	  avg_sol_w /= ngoodtrials;
 	  avg_toterr /= ngoodtrials;
 	  avg_top1_recoM /= ngoodtrials;
@@ -729,6 +750,16 @@ void demoSolveTTbar()
 	  hMETyErr[ich][isam] ->Fill(avg_mety_err);
 	  hMTop1Reco[ich][isam] ->Fill(avg_top1_recoM);
 	  hMTop2Reco[ich][isam] ->Fill(avg_top2_recoM);
+	  hTopPtReco[ich][isam] ->Fill(avg_recotop_pt);
+	  TLorentzVector avg_nu1v, avg_nu2v;
+	  avg_nu1v.SetPtEtaPhiE(avg_nu1_pt, avg_nu1_eta, avg_nu1_phi, avg_nu1_e);
+	  avg_nu2v.SetPtEtaPhiE(avg_nu2_pt, avg_nu2_eta, avg_nu2_phi, avg_nu2_e);
+	  TLorentzVector fMET;
+	  fMET = avg_nu1v + avg_nu2v;
+	  std::cout << "fMET.Pt() : " << fMET.Pt() << "\tfMET.Phi(): " << fMET.Phi() << std::endl;
+	  
+	  double metshift = (oMET.Pt() - fMET.Pt())/oMET.Pt();
+	  hMETshift[ich][isam]  ->Fill(metshift); 
 	  
 	  hNPass[ich][isam]->Fill(1);
 	  numsol++;
@@ -739,7 +770,6 @@ void demoSolveTTbar()
 
 	hNSol[ich][isam]->Fill(sol.numSol);
 	
-       
 	if(sol.numSol==0){ nsol0++; }//isol=0; }
 	if(sol.numSol==2){ nsol2++; }//isol=1; }
 	if(sol.numSol==4){ nsol4++; }//isol=2; }
@@ -750,7 +780,7 @@ void demoSolveTTbar()
 	cout << "evt           : " << nevts << endl;
 	cout << "solution?     : " << issol << endl;
 	cout << "found on trial: " << foundtrial << endl;
-	if(issol.compare("yes")==0) cout << "reco mtop1 : " << avg_top1_recoM << " reco mtop2 : " << avg_top2_recoM << endl;
+	if(issol.compare("yes")==0) cout << "reco mtop1 : " << avg_top1_recoM << "\treco mtop2 : " << avg_top2_recoM << endl;
       }
       cout << "========== Output Stats ==========" << endl;
 
@@ -908,33 +938,39 @@ void demoSolveTTbar()
     plotSolW.AddHist1D(hSolWeight[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotSolW.Draw(c,true,"png");
 
+    sprintf(pname,"metshift_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hMETshift[ich][0]->GetBinWidth(1)));
+    CPlot plotMetShift(pname,"","MET error", ylabel);
+    plotMetShift.AddHist1D(hMETshift[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMetShift.Draw(c,true,"png");
+
     sprintf(pname,"toterr_%s",suffix.c_str());
     sprintf(ylabel, "Events /%i", int(hTotErr[ich][0]->GetBinWidth(1)));
-    CPlot plotTotErr(pname,"","weight", ylabel);
+    CPlot plotTotErr(pname,"","total error", ylabel);
     plotTotErr.AddHist1D(hTotErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotTotErr.Draw(c,true,"png");
 
     sprintf(pname,"b1pterr_%s",suffix.c_str());
     sprintf(ylabel, "Events /%i", int(hB1PtErr[ich][0]->GetBinWidth(1)));
-    CPlot plotB1PtErr(pname,"","weight", ylabel);
+    CPlot plotB1PtErr(pname,"","b1 p_{T} error", ylabel);
     plotB1PtErr.AddHist1D(hB1PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotB1PtErr.Draw(c,true,"png");
 
     sprintf(pname,"b2pterr_%s",suffix.c_str());
     sprintf(ylabel, "Events /%i", int(hB2PtErr[ich][0]->GetBinWidth(1)));
-    CPlot plotB2PtErr(pname,"","weight", ylabel);
+    CPlot plotB2PtErr(pname,"","b2 p_{T} error", ylabel);
     plotB2PtErr.AddHist1D(hB2PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotB2PtErr.Draw(c,true,"png");
 
     sprintf(pname,"metxerr_%s",suffix.c_str());
     sprintf(ylabel, "Events /%i", int(hMETxErr[ich][0]->GetBinWidth(1)));
-    CPlot plotMETxErr(pname,"","weight", ylabel);
+    CPlot plotMETxErr(pname,"","E^{miss}_{x} error", ylabel);
     plotMETxErr.AddHist1D(hMETxErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotMETxErr.Draw(c,true,"png");
 
     sprintf(pname,"metyerr_%s",suffix.c_str());
     sprintf(ylabel, "Events /%i", int(hMETyErr[ich][0]->GetBinWidth(1)));
-    CPlot plotMETyErr(pname,"","weight", ylabel);
+    CPlot plotMETyErr(pname,"","E^{miss}_{y}", ylabel);
     plotMETyErr.AddHist1D(hMETyErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotMETyErr.Draw(c,true,"png");
 
