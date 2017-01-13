@@ -95,7 +95,8 @@ void demoSolveTTbar()
   // Create output directory
   gSystem->mkdir(outputDir.c_str(), true);
   CPlot::sOutDir = outputDir;
-
+  
+  std::ofstream output("output.txt");
   //
   // samples
   //
@@ -117,7 +118,8 @@ void demoSolveTTbar()
   // histograms for various corrections
   const string cmssw_base = getenv("CMSSW_BASE");
   const string puWeightFilename = cmssw_base + ("/src/DMSAna/Utils/data/PUWeights_2016.root");
-
+  const int kMT2BINS = 11;
+  const double mt2binning[] = {0,15,30,45,60,75,90,105,120,150,180,300};
   //--------------------------------------------------------------------------------------------------------------
   // Main analysis code
   //==============================================================================================================
@@ -140,6 +142,7 @@ void demoSolveTTbar()
   vector<TH1D*> hMTop1Gen[3],  hMTop2Gen[3];
   vector<TH1D*> hNu1Pt[3], hNu2Pt[3];
   vector<TH1D*> hNu1GenPt[3], hNu2GenPt[3];
+  vector<TH1D*> hMT2ll[3];
   vector<TH1D*> hMtt[3];
   vector<TH1D*> hMlb[3];
   vector<TH1D*> hLep1Pt[3], hLep2Pt[3], hB1Pt[3], hB2Pt[3];
@@ -184,6 +187,8 @@ void demoSolveTTbar()
       sprintf(hname,"hMlb_%i_%i",ich,isam);        hMlb[ich].push_back(new TH1D(hname,"",40,0,200)); hMlb[ich][isam]->Sumw2(); 
       sprintf(hname,"hTopPtReco_%i_%i",ich,isam);  hTopPtReco[ich].push_back(new TH1D(hname,"",25,0,500)); hTopPtReco[ich][isam]->Sumw2();
       sprintf(hname,"hTopPtGen_%i_%i",ich,isam);   hTopPtGen[ich].push_back(new TH1D(hname,"",25,0,500));  hTopPtGen[ich][isam]->Sumw2();
+      sprintf(hname,"hMT2ll_%i_%i",ich,isam);      hMT2ll[ich].push_back(new TH1D(hname,"",kMT2BINS, mt2binning)); hMT2ll[ich][isam]->Sumw2();
+      
       //per solution num
       sprintf(hname,"hLep1Pt_%i_%i",ich,isam);      hLep1Pt[ich].push_back(new TH1D(hname,"",25,0,150)); hLep1Pt[ich][isam]->Sumw2();
       sprintf(hname,"hLep2Pt_%i_%i",ich,isam);      hLep2Pt[ich].push_back(new TH1D(hname,"",25,0,150)); hLep2Pt[ich][isam]->Sumw2();
@@ -201,8 +206,10 @@ void demoSolveTTbar()
   unsigned int njets, njetsC;                    // jet multiplicity
   unsigned int nbjetsL, nbjetsM, nbjetsT;        // b-tag multiplicity
   unsigned int nEle, nMu, nTau, nPho;            // loose lepton multiplicity
+  float scale1fb;                                // cross-section scale factor per 1/fb
   float npu;                                     // mean expected PU
   float pfmet, pfmetphi;                         // PF MET
+  float mt2ll;
   int lep1Id, lep2Id;                            // lepton PDG ID
   TLorentzVector *lep1=0, *lep2=0, *dilep=0;     // lepton 4-vector
 
@@ -223,13 +230,17 @@ void demoSolveTTbar()
 
   TFile *infile=0;
   TTree *intree=0;
-  double numsol[3]={0,0,0}; double nosol[3]={0,0,0};
+  double npassWP[3]={0,0,0};    double nfailWP[3]={0,0,0};
+  double npassMT2WP[3]={0,0,0}; double nfailMT2WP[3]={0,0,0};
+  double numsol[3]={0,0,0};     double nosol[3]={0,0,0};
   for(unsigned int isam=0; isam<samplev.size(); isam++) {
     CSample *sample = samplev[isam];
     cout << "Sample: " << sample->label << endl;
-    int NEVT=0;
+
+    unsigned int NEVT=0;
     if(isam==0) NEVT = 10000;
-    else NEVT = 5000;
+    else        NEVT = 5000;
+
     for(unsigned int ifile=0; ifile<sample->fnamev.size(); ifile++) {
       string infilename = sample->fnamev[ifile];
       cout << " ==> Processing " << infilename << "... " << endl;
@@ -239,6 +250,7 @@ void demoSolveTTbar()
       intree->SetBranchAddress("runNum",       &runNum);
       intree->SetBranchAddress("lumiSec",      &lumiSec);
       intree->SetBranchAddress("evtNum",       &evtNum);
+      intree->SetBranchAddress("scale1fb",     &scale1fb);
       intree->SetBranchAddress("metfilter",    &metfilter);
       intree->SetBranchAddress("npv",          &npv);
       intree->SetBranchAddress("njets",        &njets);
@@ -252,6 +264,7 @@ void demoSolveTTbar()
       intree->SetBranchAddress("npu",          &npu);
       intree->SetBranchAddress("pfmet",        &pfmet);
       intree->SetBranchAddress("pfmetphi",     &pfmetphi);
+      intree->SetBranchAddress("mt2ll",        &mt2ll);
       intree->SetBranchAddress("jet1csv",      &jet1csv);
       intree->SetBranchAddress("jet2csv",      &jet2csv);
       intree->SetBranchAddress("jet3csv",      &jet3csv);
@@ -329,6 +342,11 @@ void demoSolveTTbar()
 	if((nEle+nMu) != 2)                 continue;
 	cout << "================================ new event =========================" << runNum<<" "<<evtNum<<endl;
 
+	double weight = 1;
+	weight *= LUMI*scale1fb; 
+
+	if(mt2ll>100) npassMT2WP[isam]+=weight;
+	else          nfailMT2WP[isam]+=weight;
 	//RECO-GEN Matching 	
 	TLorentzVector vLep1_GM, vLep2_GM;
 	if(fabs(genId11)==11){
@@ -490,7 +508,7 @@ void demoSolveTTbar()
 
 	TLorentzVector top1vec =  *genpar11 + *genpar12 + *genpar13;//*genparTop1;//
 	TLorentzVector top2vec =  *genpar21 + *genpar22 + *genpar23;//*genparTop2;//
-	std::cout << "top1vec.M(): " << top1vec.M() << "\ttop2vec.M(): " << top2vec.M() << std::endl;
+
 
 	hNu1GenPt[ich][isam]  ->Fill(genpar22->Pt());
 	hNu2GenPt[ich][isam]  ->Fill(genpar12->Pt());
@@ -498,8 +516,11 @@ void demoSolveTTbar()
 	hMTop2Gen[ich][isam]  ->Fill(top2vec.M());
 	hTopPtGen[ich][isam]  ->Fill(top1vec.Pt());
 
+
+
 	TLorentzVector  iU, oU;
 	std::cout << "oMET.Pt() : " << oMET.Pt() << "\toMET.Phi(): " << oMET.Phi() << std::endl;
+
 
 	int ngoodtrials=0;
 	double avg_recotop_pt=0;
@@ -552,7 +573,7 @@ void demoSolveTTbar()
           genpar23->SetPz(mysmear->Gaus(genpar23_pz_save, 0.03*genpar23_pz_save));
           genpar23->SetE(mysmear->Gaus(genpar23_e_save, 0.03*genpar23_e_save));
 	  */
-	  unsigned int k=2;
+	  unsigned int k=4;
 	  vb1.SetPtEtaPhiM(mysmear->Gaus(oB1.Pt(), k*b1ptsigma*oB1.Pt()),oB1.Eta(),mysmear->Gaus(oB1.Phi(),k*b1phisigma*oB1.Phi()),oB1.M());
 	  vb2.SetPtEtaPhiM(mysmear->Gaus(oB2.Pt(), k*b2ptsigma*oB2.Pt()),oB2.Eta(),mysmear->Gaus(oB2.Phi(),k*b2phisigma*oB2.Phi()),oB2.M());
 
@@ -574,8 +595,8 @@ void demoSolveTTbar()
 	  vMET = oU-olep1-olep2-vb1-vb2;
 
 	  //SS: error on metx and mety should be difference wrt original / sigma 
-	  double err_metx = (oMET.Px() - vMET.Px())/sX;
-	  double err_mety = (oMET.Py() - vMET.Py())/sY;
+	  double err_metx = (vMET.Px() - oMET.Px())/sX;
+	  double err_mety = (vMET.Py() - oMET.Py())/sY;
 
 	  if(verbose){
 	    cout << "vMET.Pt(): " << vMET.Pt() << endl;
@@ -737,6 +758,7 @@ void demoSolveTTbar()
 	  avg_metx_err /= ngoodtrials;
 	  avg_mety_err /= ngoodtrials;
 	  
+	  hMT2ll[ich][isam]     ->Fill(mt2ll);
 	  hMlb[ich][isam]       ->Fill(avg_Mlep1b1);
 	  hMlb[ich][isam]       ->Fill(avg_Mlep2b2);
 	  hMtt[ich][isam]       ->Fill(avg_mtt);
@@ -765,10 +787,15 @@ void demoSolveTTbar()
 	  hMETshift[ich][isam]  ->Fill(metshift); 
 	  
 	  hNPass[ich][isam]->Fill(1);
-	  numsol[isam]++;
+	  numsol[isam]+=weight;
+
+	  if(avg_toterr>1.75)  npassWP[isam]+=weight;
+	  else                 nfailWP[isam]+=weight;
+
 	} else {
 	  hNPass[ich][isam]->Fill(0);
-	  nosol[isam]++;
+	  nosol  [isam]+=weight;
+	  npassWP[isam]+=weight;
 	}
 
 	hNSol[ich][isam]->Fill(sol.numSol);
@@ -784,6 +811,7 @@ void demoSolveTTbar()
 	cout << "solution?     : " << issol << endl;
 	// cout << "found on trial: " << foundtrial << endl;
 	cout << "ngoodtrials   : " << ngoodtrials << endl;
+	cout << "top1vec.M(): " << TOPMASS << "\ttop2vec.M(): " << TOPMASS << endl;
 	if(issol.compare("yes")==0) cout << "reco mtop1 : " << avg_top1_recoM << "\treco mtop2 : " << avg_top2_recoM << endl;
       }
       delete infile;
@@ -791,13 +819,21 @@ void demoSolveTTbar()
       intree=0;      
     }
   }
-  cout << "========== Output Stats ==========" << endl;
+
+  output << "========== Output Stats ==========" << endl;
+  output << "MT2(ll) > 100 S/sqrt(B): " << npassMT2WP[isPS100]/sqrt(npassMT2WP[isTT2L]) << endl;
+  output << "MT2(ll) < 100 S/sqrt(B): " << nfailMT2WP[isPS100]/sqrt(nfailMT2WP[isTT2L]) << endl;
+  output << "----------------------------------" << endl;
+  output << "tot err >1.75 S/sqrt(B): " << npassWP[isPS100]/sqrt(npassWP[isTT2L]) << endl;
+  output << "tot err <1.75 S/sqrt(B): " << nfailWP[isPS100]/sqrt(nfailWP[isTT2L]) << endl;
+  output << "----------------------------------" << endl;
   for(unsigned int isam=0; isam<samplev.size(); isam++){
-    cout << "sample: " << samplev[isam]->label << endl;
-    cout << "yes solution: " << numsol[isam] << endl;
-    cout << "no solution : " << nosol[isam] << endl; 
-    cout << "efficiency  : " << numsol[isam]/(numsol[isam]+nosol[isam]) << endl;
+    output << "*** sample  : " << samplev[isam]->label << " *** " << endl;
+    output << "yes solution: " << numsol[isam] << endl;
+    output << "no solution : " << nosol[isam] << endl; 
+    output << "efficiency  : " << numsol[isam]/(numsol[isam]+nosol[isam]) << endl;
   }
+  output.close();
   //--------------------------------------------------------------------------------------------------------------
   // Make plots
   //==============================================================================================================
@@ -818,7 +854,7 @@ void demoSolveTTbar()
       hB2PtErr[ich][isam]->Scale(1./hB2PtErr[ich][isam]->Integral());
       hMETxErr[ich][isam]->Scale(1./hMETxErr[ich][isam]->Integral());
       hMETyErr[ich][isam]->Scale(1./hMETyErr[ich][isam]->Integral());
-      
+      hMT2ll  [ich][isam]->Scale(1./hMT2ll  [ich][isam]->Integral());
     }
 
     if(ich==0) { suffix = "ee"; }
@@ -903,13 +939,24 @@ void demoSolveTTbar()
     plotSolW.AddHist1D(hSolWeight[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotSolW.Draw(c,true,"png");
 
+
     sprintf(pname,"metshift_%s",suffix.c_str());
     sprintf(ylabel, "Events /%i", int(hMETshift[ich][0]->GetBinWidth(1)));
     CPlot plotMetShift(pname,"","MET error", ylabel);
     plotMetShift.AddHist1D(hMETshift[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
     plotMetShift.Draw(c,true,"png");
 
-    sprintf(ylabel,"a.u.",int(hTotErr[ich][0]->GetBinWidth(1)));
+
+    sprintf(ylabel,"a.u.");
+    sprintf(pname,"mt2ll_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hTotErr[ich][0]->GetBinWidth(1)));
+    CPlot plotMT2ll(pname,"","M_{T2}(ll)", ylabel);
+    plotMT2ll.AddHist1D(hMT2ll[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMT2ll.AddHist1D(hMT2ll[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotMT2ll.AddHist1D(hMT2ll[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotMT2ll.Draw(c,true,"png");
+
+
     sprintf(pname,"toterr_%s",suffix.c_str());
     // sprintf(ylabel, "Events /%i", int(hTotErr[ich][0]->GetBinWidth(1)));
     CPlot plotTotErr(pname,"","total error", ylabel);
