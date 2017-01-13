@@ -75,7 +75,7 @@ void demoSolveTTbar()
   string outputDir;
   outputDir = "demo";
 
-  const int NEVT = 10000; //50000;
+
 
   //
   // Constants
@@ -103,11 +103,14 @@ void demoSolveTTbar()
 
   unsigned int isTT2L = samplev.size();
   samplev.push_back(new CSample("t#bar{t}(2l)", kGreen+1, kGreen+2));
-  //  samplev.back()->fnamev.push_back("/tthome/ssevova/Analysis/11/CMSSW_8_0_20/src/DMSAna/ttDM/baconbits/Spring16_TTTo2L2Nu_powheg_dilepbits.root");
-  samplev.back()->fnamev.push_back("/tthome/ssevova/Analysis/11/CMSSW_8_0_20/src/DMSAna/ttDM/baconbits/Spring16_TTTo2L2Nu_powheg_kinfitbits.root");
-  // unsigned int isS100 = samplev.size(); 
-  // samplev.push_back(new CSample("S M_{#phi}=100 M_{#chi}=1", kOrange+7, kOrange+8));
-  // samplev.back()->fnamev.push_back("../baconbits/Spring16_TTbarDMJets_pseudoscalar_Mchi-1_Mphi-100_kinfitbits.root");
+  samplev.back()->fnamev.push_back("/tthome/ssevova/Analysis/11/CMSSW_8_0_20/src/DMSAna/ttDM/baconbits/Spring16_TTTo2L2Nu_powheg_dilepbits.root");
+  // samplev.back()->fnamev.push_back("/tthome/ssevova/Analysis/11/CMSSW_8_0_20/src/DMSAna/ttDM/baconbits/Spring16_TTTo2L2Nu_powheg_kinfitbits.root");
+  unsigned int isPS100 = samplev.size(); 
+  samplev.push_back(new CSample("PS M_{#phi}=100 M_{#chi}=1", kOrange+7, kOrange+8));
+  samplev.back()->fnamev.push_back("../baconbits/Spring16_TTbarDMJets_pseudoscalar_Mchi-1_Mphi-100_dilepbits.root");
+  unsigned int isS300 = samplev.size(); 
+  samplev.push_back(new CSample("S M_{#phi}=300 M_{#chi}=1", kBlue+1, kBlue+2));
+  samplev.back()->fnamev.push_back("../baconbits/Spring16_TTbarDMJets_scalar_Mchi-1_Mphi-300_dilepbits.root");
   
   // integrated lumi to scale MC
   const double LUMI = 36.459;
@@ -154,6 +157,7 @@ void demoSolveTTbar()
 
   for(int ich=0; ich<3; ich++){
     for(unsigned int isam=0; isam<samplev.size(); isam++){
+      
       sprintf(hname,"hNu1vWeight_%i_%i",ich,isam); hNu1vWeight[ich].push_back(new TH2D(hname,"",50,0,500,50,0,1)); hNu1vWeight[ich][isam]->Sumw2();
       sprintf(hname,"hNu2vWeight_%i_%i",ich,isam); hNu2vWeight[ich].push_back(new TH2D(hname,"",50,0,500,50,0,1)); hNu2vWeight[ich][isam]->Sumw2();
       
@@ -165,9 +169,9 @@ void demoSolveTTbar()
       sprintf(hname,"hNu2Pt_%i_%i", ich, isam);      hNu2Pt[ich].push_back(new TH1D(hname,"",25,0,100));   hNu2Pt[ich][isam]->Sumw2();
       sprintf(hname,"hNu2GenPt_%i_%i", ich, isam);   hNu2GenPt[ich].push_back(new TH1D(hname,"",25,0,100));   hNu2GenPt[ich][isam]->Sumw2();
       sprintf(hname,"hSolWeight_%i_%i",ich,isam);  hSolWeight[ich].push_back(new TH1D(hname,"",20,0,1)); hSolWeight[ich][isam]->Sumw2();
-      sprintf(hname,"hTotErr_%i_%i",ich,isam);  hTotErr[ich].push_back(new TH1D(hname,"",100,0,10)); hTotErr[ich][isam]->Sumw2();
-      sprintf(hname,"hB1PtErr_%i_%i",ich,isam);  hB1PtErr[ich].push_back(new TH1D(hname,"",100,-10,10)); hB1PtErr[ich][isam]->Sumw2();
-      sprintf(hname,"hB2PtErr_%i_%i",ich,isam);  hB2PtErr[ich].push_back(new TH1D(hname,"",100,-10,10)); hB2PtErr[ich][isam]->Sumw2();
+      sprintf(hname,"hTotErr_%i_%i",ich,isam);  hTotErr[ich].push_back(new TH1D(hname,"",50,1,7)); hTotErr[ich][isam]->Sumw2();
+      sprintf(hname,"hB1PtErr_%i_%i",ich,isam);  hB1PtErr[ich].push_back(new TH1D(hname,"",50,-5,5)); hB1PtErr[ich][isam]->Sumw2();
+      sprintf(hname,"hB2PtErr_%i_%i",ich,isam);  hB2PtErr[ich].push_back(new TH1D(hname,"",50,-5,5)); hB2PtErr[ich][isam]->Sumw2();
       sprintf(hname,"hMETxErr_%i_%i",ich,isam);  hMETxErr[ich].push_back(new TH1D(hname,"",50,-5,5)); hMETxErr[ich][isam]->Sumw2();
       sprintf(hname,"hMETyErr_%i_%i",ich,isam);  hMETyErr[ich].push_back(new TH1D(hname,"",50,-5,5)); hMETyErr[ich][isam]->Sumw2();
       sprintf(hname,"hMETshift_%i_%i",ich,isam); hMETshift[ich].push_back(new TH1D(hname,"",100,-1,1)); hMETshift[ich][isam]->Sumw2();
@@ -212,17 +216,20 @@ void demoSolveTTbar()
   int             genTop1Id, genTop2Id;
   TLorentzVector *genparTop1=0, *genparTop2=0;
 
+  float           rhojet;
   float           jet1csv,  jet2csv,  jet3csv,  jet4csv;
   TLorentzVector *jet1=0,  *jet2=0,  *jet3=0,  *jet4=0;
   int lep1hlt, lep2hlt;
 
   TFile *infile=0;
   TTree *intree=0;
-  double numsol=0; double nosol=0;
+  double numsol[3]={0,0,0}; double nosol[3]={0,0,0};
   for(unsigned int isam=0; isam<samplev.size(); isam++) {
     CSample *sample = samplev[isam];
     cout << "Sample: " << sample->label << endl;
-
+    int NEVT=0;
+    if(isam==0) NEVT = 10000;
+    else NEVT = 5000;
     for(unsigned int ifile=0; ifile<sample->fnamev.size(); ifile++) {
       string infilename = sample->fnamev[ifile];
       cout << " ==> Processing " << infilename << "... " << endl;
@@ -253,6 +260,7 @@ void demoSolveTTbar()
       intree->SetBranchAddress("jet2",         &jet2);
       intree->SetBranchAddress("jet3",         &jet3);
       intree->SetBranchAddress("jet4",         &jet4);
+      intree->SetBranchAddress("rhojet",       &rhojet);
       intree->SetBranchAddress("lep1Id",    &lep1Id);
       intree->SetBranchAddress("lep1",      &lep1);
       intree->SetBranchAddress("lep2Id",    &lep2Id);
@@ -290,7 +298,7 @@ void demoSolveTTbar()
       double nevts=0;
       int nsol2=0, nsol4=0, nsol0=0;
       std::cout << "start loop ... " << std::endl;
-      //      for(unsigned int ientry=0; ientry<intree->GetEntries()/1000; ientry++) {
+      // for(unsigned int ientry=0; ientry<intree->GetEntries()/1000; ientry++) {
       for(unsigned int ientry=0; ientry<NEVT; ientry++) {
 	sol.reset();
         intree->GetEntry(ientry);
@@ -346,7 +354,6 @@ void demoSolveTTbar()
 	vjet.push_back(*jet1); 	vjet.push_back(*jet2); 	vjet.push_back(*jet3);	vjet.push_back(*jet4);
 
 	cout << "done gen matching " << endl;
-
 
 	if(verbose){
 	  cout<<"SORTING by CSV"<<endl;
@@ -418,8 +425,8 @@ void demoSolveTTbar()
 	b2 = ttbarCandidate::ttbarCandidateParticle(vB2_GM,0);
 	*/
 
-	cout << "gen id 11: "<<genId11<<endl;
-	cout << "gen id 21: "<<genId21<<endl;
+	// cout << "gen id 11: "<<genId11<<endl;
+	// cout << "gen id 21: "<<genId21<<endl;
 
 	// if(fabs(genId11)==15 || fabs(genId21)==15) continue;
 
@@ -444,10 +451,10 @@ void demoSolveTTbar()
 	myjer.covMatrix(covMat,(oMET+olep1+olep2+oB1+oB2).Pt(),(oMET+olep1+olep2+oB1+oB2).Phi(),2); //to be plotted
 	//	cout.flush();
 
-	double b1ptsigma  = myjer.getPtSigmaSmear(oB1, 10); 
-	double b2ptsigma  = myjer.getPtSigmaSmear(oB2, 10);
-	double b1phisigma = myjer.getPhiSigmaSmear(oB1,10);
-	double b2phisigma = myjer.getPhiSigmaSmear(oB2,10);
+	double b1ptsigma  = myjer.getPtSigmaSmear(oB1, rhojet); 
+	double b2ptsigma  = myjer.getPtSigmaSmear(oB2, rhojet);
+	double b1phisigma = myjer.getPhiSigmaSmear(oB1,rhojet);
+	double b2phisigma = myjer.getPhiSigmaSmear(oB2,rhojet);
 	
 	float pxmiss_, pymiss_;
 	int foundtrial=0;
@@ -545,18 +552,14 @@ void demoSolveTTbar()
           genpar23->SetPz(mysmear->Gaus(genpar23_pz_save, 0.03*genpar23_pz_save));
           genpar23->SetE(mysmear->Gaus(genpar23_e_save, 0.03*genpar23_e_save));
 	  */
+	  unsigned int k=2;
+	  vb1.SetPtEtaPhiM(mysmear->Gaus(oB1.Pt(), k*b1ptsigma*oB1.Pt()),oB1.Eta(),mysmear->Gaus(oB1.Phi(),k*b1phisigma*oB1.Phi()),oB1.M());
+	  vb2.SetPtEtaPhiM(mysmear->Gaus(oB2.Pt(), k*b2ptsigma*oB2.Pt()),oB2.Eta(),mysmear->Gaus(oB2.Phi(),k*b2phisigma*oB2.Phi()),oB2.M());
 
-	  vb1.SetPtEtaPhiM(mysmear->Gaus(oB1.Pt(), 2*b1ptsigma*oB1.Pt()),oB1.Eta(),mysmear->Gaus(oB1.Phi(),2*b1phisigma*oB1.Phi()),oB1.M());
-	  vb2.SetPtEtaPhiM(mysmear->Gaus(oB2.Pt(), 2*b2ptsigma*oB2.Pt()),oB2.Eta(),mysmear->Gaus(oB2.Phi(),2*b2phisigma*oB2.Phi()),oB2.M());
-
-	  /*	  
-	  vb1.SetPtEtaPhiM(oB1.Pt(), oB1.Phi(), oB1.Eta(), oB1.M());
-	  vb2.SetPtEtaPhiM(oB2.Pt(), oB2.Phi(), oB2.Eta(), oB2.M());
-	  */
-	  double err_b1_pt  = (vb1.Pt() - oB1.Pt())/(2*b1ptsigma*oB1.Pt());
-	  double err_b1_phi = (vb1.Phi() - oB1.Phi())/(2*b1ptsigma*oB1.Phi());
-	  double err_b2_pt  = (vb2.Pt() - oB2.Pt())/(2*b2ptsigma*oB2.Pt());
-	  double err_b2_phi = (vb2.Phi() - oB2.Phi())/(2*b2ptsigma*oB2.Phi());
+	  double err_b1_pt  = (vb1.Pt() - oB1.Pt())/(k*b1ptsigma*oB1.Pt());
+	  double err_b1_phi = (vb1.Phi() - oB1.Phi())/(k*b1ptsigma*oB1.Phi());
+	  double err_b2_pt  = (vb2.Pt() - oB2.Pt())/(k*b2ptsigma*oB2.Pt());
+	  double err_b2_phi = (vb2.Phi() - oB2.Phi())/(k*b2ptsigma*oB2.Phi());
 
 	  // KH smear MET
 	  // iU = oMET-olep1-olep2-vb1-vb2; //MT: replaced by line below (+ instead of -)
@@ -580,7 +583,7 @@ void demoSolveTTbar()
 	  }
 
 	  double toterr = sqrt( err_b1_pt*err_b1_pt + err_b1_phi*err_b1_phi + err_b2_pt*err_b2_pt + err_b2_phi*err_b2_phi
-				// + sX*sX + sY*sY );
+				// + sX*sX + sY*sY );//SS add line below
 				+ err_metx*err_metx + err_mety*err_mety );
 
 	  for(int i=0; i<2; i++){
@@ -610,7 +613,7 @@ void demoSolveTTbar()
 	    pymiss_ = ttbar.lep1vec.Py() + ttbar.B1vec.Py() + ttbar.lep2vec.Py() + ttbar.B2vec.Py() + vMET.Py();
 	    
 	    solver->SetConstraints(pxmiss_,pymiss_);
-	    solver->SetGenTops(top1vec, top2vec);
+	    solver->SetGenTopMass(TOPMASS, TOPMASS);//top1vec, top2vec);
 	    //	    solver->SetWMass((*genpar11 + *genpar12).M(), (*genpar21 + *genpar22).M());
 	    solver->SetWMass(WMASS, WMASS);
 	    solver->SolveNu(sol,ttbar);
@@ -762,10 +765,10 @@ void demoSolveTTbar()
 	  hMETshift[ich][isam]  ->Fill(metshift); 
 	  
 	  hNPass[ich][isam]->Fill(1);
-	  numsol++;
+	  numsol[isam]++;
 	} else {
 	  hNPass[ich][isam]->Fill(0);
-	  nosol++;
+	  nosol[isam]++;
 	}
 
 	hNSol[ich][isam]->Fill(sol.numSol);
@@ -779,18 +782,21 @@ void demoSolveTTbar()
 	issol = ngoodtrials > 0 ? "yes" : "no";
 	cout << "evt           : " << nevts << endl;
 	cout << "solution?     : " << issol << endl;
-	cout << "found on trial: " << foundtrial << endl;
+	// cout << "found on trial: " << foundtrial << endl;
+	cout << "ngoodtrials   : " << ngoodtrials << endl;
 	if(issol.compare("yes")==0) cout << "reco mtop1 : " << avg_top1_recoM << "\treco mtop2 : " << avg_top2_recoM << endl;
       }
-      cout << "========== Output Stats ==========" << endl;
-
-      cout << "yes solution: " << numsol << endl;
-      cout << "no solution : " << nosol << endl; 
-      cout << "efficiency  : " << numsol/(numsol+nosol) << endl;
       delete infile;
       infile=0;
       intree=0;      
     }
+  }
+  cout << "========== Output Stats ==========" << endl;
+  for(unsigned int isam=0; isam<samplev.size(); isam++){
+    cout << "sample: " << samplev[isam]->label << endl;
+    cout << "yes solution: " << numsol[isam] << endl;
+    cout << "no solution : " << nosol[isam] << endl; 
+    cout << "efficiency  : " << numsol[isam]/(numsol[isam]+nosol[isam]) << endl;
   }
   //--------------------------------------------------------------------------------------------------------------
   // Make plots
@@ -805,56 +811,241 @@ void demoSolveTTbar()
   char ylabel[100];
   string suffix;
 
-  for(unsigned int isol=0; isol<3; isol++){
-    // KH
-    /*
-    if(isol==0) { suffix = "0sol"; }
-    if(isol==1) { suffix = "2sol"; }
-    if(isol==2) { suffix = "4sol"; }
-    */
-    if(isol==0) { suffix = "ee"; }
-    if(isol==1) { suffix = "em"; }
-    if(isol==2) { suffix = "mm"; }
-    
+  for(unsigned int ich=0; ich<3; ich++){
+    for(unsigned int isam=0; isam<samplev.size(); isam++){
+      hTotErr[ich][isam]->Scale(1./hTotErr[ich][isam]->Integral());
+      hB1PtErr[ich][isam]->Scale(1./hB1PtErr[ich][isam]->Integral());
+      hB2PtErr[ich][isam]->Scale(1./hB2PtErr[ich][isam]->Integral());
+      hMETxErr[ich][isam]->Scale(1./hMETxErr[ich][isam]->Integral());
+      hMETyErr[ich][isam]->Scale(1./hMETyErr[ich][isam]->Integral());
+      
+    }
+
+    if(ich==0) { suffix = "ee"; }
+    if(ich==1) { suffix = "em"; }
+    if(ich==2) { suffix = "mm"; }
+
+    ////// 2D ///////
+    sprintf(pname,"mtt_weight_%s",suffix.c_str());
+    CPlot plotmttw(pname,"","M_{t#bar{t}} [GeV]","weight");
+    plotmttw.AddHist2D(hMttvWeight[ich][isTT2L], "COLZ");
+    plotmttw.Draw(c,true,"png");
+
+    sprintf(pname,"nu1E_weight_%s",suffix.c_str());
+    CPlot plotnu1w(pname,"","#nu_{1} E [GeV]","weight");
+    plotnu1w.AddHist2D(hNu1vWeight[ich][isTT2L], "COLZ");
+    plotnu1w.Draw(c,true,"png");
+
+    sprintf(pname,"nu2E_weight_%s",suffix.c_str());
+    CPlot plotnu2w(pname,"","#nu_{2} E [GeV]","weight");
+    plotnu2w.AddHist2D(hNu2vWeight[ich][isTT2L], "COLZ");
+    plotnu2w.Draw(c,true,"png");
+
+    sprintf(pname, "nu1_nu2_E_%s",suffix.c_str());
+    CPlot plotNuE(pname,"","#bar{#nu} E", "#nu E");
+    plotNuE.AddHist2D(hNuE2D[ich][isTT2L],"COLZ");
+    plotNuE.Draw(c,true,"png");
+    /////////////////////////////////
+ 
     sprintf(pname,"lep1_pt_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i GeV",int(hLep1Pt[isol][0]->GetBinWidth(1)));
+    sprintf(ylabel,"Events / %i GeV",int(hLep1Pt[ich][0]->GetBinWidth(1)));
     CPlot plotlep1pt(pname,"","lep1 p_{T} [GeV]",ylabel);
-    plotlep1pt.AddHist1D(hLep1Pt[isol][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
+    plotlep1pt.AddHist1D(hLep1Pt[ich][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
     plotlep1pt.Draw(c,true,"png");
 
     sprintf(pname,"lep2_pt_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i GeV",int(hLep2Pt[isol][0]->GetBinWidth(1)));
+    sprintf(ylabel,"Events / %i GeV",int(hLep2Pt[ich][0]->GetBinWidth(1)));
     CPlot plotlep2pt(pname,"","lep2 p_{T} [GeV]",ylabel);
-    plotlep2pt.AddHist1D(hLep2Pt[isol][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
+    plotlep2pt.AddHist1D(hLep2Pt[ich][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
     plotlep2pt.Draw(c,true,"png");
 
     sprintf(pname,"B1_pt_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i GeV",int(hB1Pt[isol][0]->GetBinWidth(1)));
+    sprintf(ylabel,"Events / %i GeV",int(hB1Pt[ich][0]->GetBinWidth(1)));
     CPlot plotB1pt(pname,"","B1 p_{T} [GeV]",ylabel);
-    plotB1pt.AddHist1D(hB1Pt[isol][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
+    plotB1pt.AddHist1D(hB1Pt[ich][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
     plotB1pt.Draw(c,true,"png");
 
     sprintf(pname,"B2_pt_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i GeV",int(hB2Pt[isol][0]->GetBinWidth(1)));
+    sprintf(ylabel,"Events / %i GeV",int(hB2Pt[ich][0]->GetBinWidth(1)));
     CPlot plotB2pt(pname,"","B2 p_{T} [GeV]",ylabel);
-    plotB2pt.AddHist1D(hB2Pt[isol][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
+    plotB2pt.AddHist1D(hB2Pt[ich][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
     plotB2pt.Draw(c,true,"png");
 
 
     sprintf(pname,"GenTop1_m_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i GeV",int(hMTop1Gen[isol][0]->GetBinWidth(1)));
+    sprintf(ylabel,"Events / %i GeV",int(hMTop1Gen[ich][0]->GetBinWidth(1)));
     CPlot plotGenTop1M(pname,"","GenTop1 Mass [GeV]",ylabel);
-    plotGenTop1M.AddHist1D(hMTop1Gen[isol][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
+    plotGenTop1M.AddHist1D(hMTop1Gen[ich][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
     plotGenTop1M.Draw(c,true,"png");
 
 
     sprintf(pname,"GenTop2_m_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i GeV",int(hMTop2Gen[isol][0]->GetBinWidth(1)));
+    sprintf(ylabel,"Events / %i GeV",int(hMTop2Gen[ich][0]->GetBinWidth(1)));
     CPlot plotGenTop2M(pname,"","GenTop2 Mass [GeV]",ylabel);
-    plotGenTop2M.AddHist1D(hMTop2Gen[isol][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
+    plotGenTop2M.AddHist1D(hMTop2Gen[ich][isTT2L], samplev[isTT2L]->label,"histE", samplev[isTT2L]->linecolor);
     plotGenTop2M.Draw(c,true,"png");
+      
+    sprintf(pname,"num_solutions_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hNSol[ich][0]->GetBinWidth(1)));
+    CPlot plotNSol(pname,"","N Solutions", ylabel);
+    plotNSol.AddHist1D(hNSol[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotNSol.Draw(c,true,"png");
 
-        
+    sprintf(pname,"num_pass_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hNPass[ich][0]->GetBinWidth(1)));
+    CPlot plotNPass(pname,"","N Pass", ylabel);
+    plotNPass.AddHist1D(hNPass[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotNPass.Draw(c,true,"png");
+
+    sprintf(pname,"weight_solutions_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hSolWeight[ich][0]->GetBinWidth(1)));
+    CPlot plotSolW(pname,"","weight", ylabel);
+    plotSolW.AddHist1D(hSolWeight[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotSolW.Draw(c,true,"png");
+
+    sprintf(pname,"metshift_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hMETshift[ich][0]->GetBinWidth(1)));
+    CPlot plotMetShift(pname,"","MET error", ylabel);
+    plotMetShift.AddHist1D(hMETshift[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMetShift.Draw(c,true,"png");
+
+    sprintf(ylabel,"a.u.",int(hTotErr[ich][0]->GetBinWidth(1)));
+    sprintf(pname,"toterr_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hTotErr[ich][0]->GetBinWidth(1)));
+    CPlot plotTotErr(pname,"","total error", ylabel);
+    plotTotErr.AddHist1D(hTotErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotTotErr.AddHist1D(hTotErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotTotErr.AddHist1D(hTotErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotTotErr.Draw(c,true,"png");
+
+    sprintf(pname,"toterrlog_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hTotErr[ich][0]->GetBinWidth(1)));
+    CPlot plotTotErrLog(pname,"","total error",ylabel);
+    plotTotErrLog.AddHist1D(hTotErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotTotErrLog.AddHist1D(hTotErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotTotErrLog.AddHist1D(hTotErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotTotErrLog.SetLogy();
+    plotTotErrLog.Draw(c,true,"png");
+
+    sprintf(pname,"b1pterr_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hB1PtErr[ich][0]->GetBinWidth(1)));
+    CPlot plotB1PtErr(pname,"","b1 p_{T} error", ylabel);
+    plotB1PtErr.AddHist1D(hB1PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotB1PtErr.AddHist1D(hB1PtErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotB1PtErr.AddHist1D(hB1PtErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotB1PtErr.Draw(c,true,"png");
+
+    sprintf(pname,"b1pterrlog_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hB1PtErr[ich][0]->GetBinWidth(1)));
+    CPlot plotB1PtErrLog(pname,"","b1 p_{T} error", ylabel);
+    plotB1PtErrLog.AddHist1D(hB1PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotB1PtErrLog.AddHist1D(hB1PtErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotB1PtErrLog.AddHist1D(hB1PtErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotB1PtErrLog.SetLogy();
+    plotB1PtErrLog.Draw(c,true,"png");
+
+    sprintf(pname,"b2pterr_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hB2PtErr[ich][0]->GetBinWidth(1)));
+    CPlot plotB2PtErr(pname,"","b2 p_{T} error", ylabel);
+    plotB2PtErr.AddHist1D(hB2PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotB2PtErr.AddHist1D(hB2PtErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotB2PtErr.AddHist1D(hB2PtErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotB2PtErr.Draw(c,true,"png");
+
+    sprintf(pname,"b2pterrlog_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hB2PtErr[ich][0]->GetBinWidth(1)));
+    CPlot plotB2PtErrLog(pname,"","b2 p_{T} error", ylabel);
+    plotB2PtErrLog.AddHist1D(hB2PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotB2PtErrLog.AddHist1D(hB2PtErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotB2PtErrLog.AddHist1D(hB2PtErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotB2PtErrLog.SetLogy();
+    plotB2PtErrLog.Draw(c,true,"png");
+
+    sprintf(pname,"metxerr_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hMETxErr[ich][0]->GetBinWidth(1)));
+    CPlot plotMETxErr(pname,"","E^{miss}_{x} error", ylabel);
+    plotMETxErr.AddHist1D(hMETxErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMETxErr.AddHist1D(hMETxErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotMETxErr.AddHist1D(hMETxErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotMETxErr.Draw(c,true,"png");
+
+    sprintf(pname,"metxerrlog_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hMETxErr[ich][0]->GetBinWidth(1)));
+    CPlot plotMETxErrLog(pname,"","E^{miss}_{x} error", ylabel);
+    plotMETxErrLog.AddHist1D(hMETxErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMETxErrLog.AddHist1D(hMETxErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotMETxErrLog.AddHist1D(hMETxErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotMETxErrLog.SetLogy();
+    plotMETxErrLog.Draw(c,true,"png");
+
+    sprintf(pname,"metyerr_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hMETyErr[ich][0]->GetBinWidth(1)));
+    CPlot plotMETyErr(pname,"","E^{miss}_{y} error", ylabel);
+    plotMETyErr.AddHist1D(hMETyErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMETyErr.AddHist1D(hMETyErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotMETyErr.AddHist1D(hMETyErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotMETyErr.Draw(c,true,"png");
+
+    sprintf(pname,"metyerrlogz_%s",suffix.c_str());
+    // sprintf(ylabel, "Events /%i", int(hMETyErr[ich][0]->GetBinWidth(1)));
+    CPlot plotMETyErrLog(pname,"","E^{miss}_{y} error", ylabel);
+    plotMETyErrLog.AddHist1D(hMETyErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMETyErrLog.AddHist1D(hMETyErr[ich][isPS100],samplev[isPS100]->label, "histE", samplev[isPS100]->linecolor,1,0,3);
+    plotMETyErrLog.AddHist1D(hMETyErr[ich][isS300],samplev[isS300]->label, "histE", samplev[isS300]->linecolor,1,0,3);
+    plotMETyErrLog.SetLogy();
+    plotMETyErrLog.Draw(c,true,"png");
+
+    sprintf(pname,"mtt_%s",suffix.c_str());
+    sprintf(ylabel, "Events / %i", int(hMtt[ich][0]->GetBinWidth(1)));
+    CPlot plotMtt(pname,"","M_{t#bar{t}} [GeV]",ylabel);
+    plotMtt.AddHist1D(hMtt[ich][isTT2L], samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMtt.Draw(c,true,"png");
+    
+    sprintf(pname,"mlb_%s",suffix.c_str());
+    sprintf(ylabel, "Events / %i", int(hMlb[ich][0]->GetBinWidth(1)));
+    CPlot plotMlb(pname,"","M_{(l,b)} [GeV]",ylabel);
+    plotMlb.AddHist1D(hMlb[ich][isTT2L], samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMlb.Draw(c,true,"png");
+
+    sprintf(pname,"toppt_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hTopPtReco[ich][0]->GetBinWidth(1)));
+    CPlot plotTopPt(pname,"","top p_{T} [GeV]", ylabel);
+    // plotTopPt.AddHist1D(hTopPtReco[ich][isPS100], "S 1 100 signal smear","histE", samplev[isPS100]->linecolor,1,0,3);
+    plotTopPt.AddHist1D(hTopPtReco[ich][isTT2L],"t#bar{t} reco", "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotTopPt.AddHist1D(hTopPtGen[ich][isTT2L],"t#bar{t} gen", "histE", kMagenta+2,1,0,3);
+    plotTopPt.Draw(c,true,"png");
+    
+    sprintf(pname,"mtop1_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hMTop1Reco[ich][0]->GetBinWidth(1)));
+    CPlot plotMTop1(pname,"","M_{#bar{t}} [GeV]", ylabel);
+    // plotMTop1.AddHist1D(hMTop1Reco[ich][isPS100], "S 1 100 signal smear","histE", samplev[isPS100]->linecolor,1,0,3);
+    plotMTop1.AddHist1D(hMTop1Reco[ich][isTT2L],"t#bar{t} reco", "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMTop1.AddHist1D(hMTop1Gen[ich][isTT2L],"t#bar{t} gen", "histE", kMagenta+2,1,0,3);
+    plotMTop1.Draw(c,true,"png");
+
+    sprintf(pname,"mtop2_%s",suffix.c_str());
+    sprintf(ylabel, "Events /%i", int(hMTop2Reco[ich][0]->GetBinWidth(1)));
+    CPlot plotMTop2(pname,"","M_{t} [GeV]", ylabel);
+    // plotMTop2.AddHist1D(hMTop2Reco[ich][isPS100], "S 1 100 signal smear","histE", samplev[isPS100]->linecolor,1,0,3);
+    plotMTop2.AddHist1D(hMTop2Reco[ich][isTT2L],"t#bar{t} reco", "histE", samplev[isTT2L]->linecolor,1,0,3);
+    plotMTop2.AddHist1D(hMTop2Gen[ich][isTT2L],"t#bar{t} gen", "histE", kMagenta+2,1,0,3);
+    plotMTop2.Draw(c,true,"png");
+
+    sprintf(pname,"nu1pt_%s",suffix.c_str());
+    sprintf(ylabel,"Events / %i", int(hNu1Pt[ich][0]->GetBinWidth(1)));
+    CPlot plotNu1Pt(pname, "", "#bar{#nu} p_{T} [GeV]",ylabel);
+    plotNu1Pt.AddHist1D(hNu1Pt[ich][isTT2L],"ttbar smear","histE",samplev[isTT2L]->linecolor,1,0,3);
+    plotNu1Pt.AddHist1D(hNu1GenPt[ich][isTT2L],"ttbar gen","histE",kPink+7,1,0,3);
+    plotNu1Pt.Draw(c,true,"png");
+
+    sprintf(pname,"nu2pt_%s",suffix.c_str());
+    sprintf(ylabel,"Events / %i", int(hNu2Pt[ich][0]->GetBinWidth(1)));
+    CPlot plotNu2Pt(pname, "", "#nu p_{T} [GeV]",ylabel);
+    plotNu2Pt.AddHist1D(hNu2Pt[ich][isTT2L],"ttbar smear","histE",samplev[isTT2L]->linecolor,1,0,3);
+    plotNu2Pt.AddHist1D(hNu2GenPt[ich][isTT2L],"ttbar gen","histE",kPink+7,1,0,3);
+    plotNu2Pt.Draw(c,true,"png");
+
+    
   }
   
   for(unsigned int isol=0; isol<3; isol++){
@@ -895,134 +1086,5 @@ void demoSolveTTbar()
   plotB2Pt.Draw(c,true,"png");
   
   
-  for(unsigned int ich=0; ich<3; ich++){
-    if(ich==0) { suffix = "ee"; }
-    if(ich==1) { suffix = "em"; }
-    if(ich==2) { suffix = "mm"; }
-
-    sprintf(pname,"mtt_weight_%s",suffix.c_str());
-    CPlot plotmttw(pname,"","M_{t#bar{t}} [GeV]","weight");
-    plotmttw.AddHist2D(hMttvWeight[ich][isTT2L], "COLZ");
-    plotmttw.Draw(c,true,"png");
-
-    sprintf(pname,"nu1E_weight_%s",suffix.c_str());
-    CPlot plotnu1w(pname,"","#nu_{1} E [GeV]","weight");
-    plotnu1w.AddHist2D(hNu1vWeight[ich][isTT2L], "COLZ");
-    plotnu1w.Draw(c,true,"png");
-
-    sprintf(pname,"nu2E_weight_%s",suffix.c_str());
-    CPlot plotnu2w(pname,"","#nu_{2} E [GeV]","weight");
-    plotnu2w.AddHist2D(hNu2vWeight[ich][isTT2L], "COLZ");
-    plotnu2w.Draw(c,true,"png");
-
-    sprintf(pname, "nu1_nu2_E_%s",suffix.c_str());
-    CPlot plotNuE(pname,"","#bar{#nu} E", "#nu E");
-    plotNuE.AddHist2D(hNuE2D[ich][isTT2L],"COLZ");
-    plotNuE.Draw(c,true,"png");
-    
-    sprintf(pname,"num_solutions_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hNSol[ich][0]->GetBinWidth(1)));
-    CPlot plotNSol(pname,"","N Solutions", ylabel);
-    plotNSol.AddHist1D(hNSol[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotNSol.Draw(c,true,"png");
-
-    sprintf(pname,"num_pass_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hNPass[ich][0]->GetBinWidth(1)));
-    CPlot plotNPass(pname,"","N Pass", ylabel);
-    plotNPass.AddHist1D(hNPass[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotNPass.Draw(c,true,"png");
-
-    sprintf(pname,"weight_solutions_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hSolWeight[ich][0]->GetBinWidth(1)));
-    CPlot plotSolW(pname,"","weight", ylabel);
-    plotSolW.AddHist1D(hSolWeight[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotSolW.Draw(c,true,"png");
-
-    sprintf(pname,"metshift_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hMETshift[ich][0]->GetBinWidth(1)));
-    CPlot plotMetShift(pname,"","MET error", ylabel);
-    plotMetShift.AddHist1D(hMETshift[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotMetShift.Draw(c,true,"png");
-
-    sprintf(pname,"toterr_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hTotErr[ich][0]->GetBinWidth(1)));
-    CPlot plotTotErr(pname,"","total error", ylabel);
-    plotTotErr.AddHist1D(hTotErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotTotErr.Draw(c,true,"png");
-
-    sprintf(pname,"b1pterr_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hB1PtErr[ich][0]->GetBinWidth(1)));
-    CPlot plotB1PtErr(pname,"","b1 p_{T} error", ylabel);
-    plotB1PtErr.AddHist1D(hB1PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotB1PtErr.Draw(c,true,"png");
-
-    sprintf(pname,"b2pterr_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hB2PtErr[ich][0]->GetBinWidth(1)));
-    CPlot plotB2PtErr(pname,"","b2 p_{T} error", ylabel);
-    plotB2PtErr.AddHist1D(hB2PtErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotB2PtErr.Draw(c,true,"png");
-
-    sprintf(pname,"metxerr_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hMETxErr[ich][0]->GetBinWidth(1)));
-    CPlot plotMETxErr(pname,"","E^{miss}_{x} error", ylabel);
-    plotMETxErr.AddHist1D(hMETxErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotMETxErr.Draw(c,true,"png");
-
-    sprintf(pname,"metyerr_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hMETyErr[ich][0]->GetBinWidth(1)));
-    CPlot plotMETyErr(pname,"","E^{miss}_{y}", ylabel);
-    plotMETyErr.AddHist1D(hMETyErr[ich][isTT2L],samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotMETyErr.Draw(c,true,"png");
-
-    sprintf(pname,"mtt_%s",suffix.c_str());
-    sprintf(ylabel, "Events / %i", int(hMtt[ich][0]->GetBinWidth(1)));
-    CPlot plotMtt(pname,"","M_{t#bar{t}} [GeV]",ylabel);
-    plotMtt.AddHist1D(hMtt[ich][isTT2L], samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotMtt.Draw(c,true,"png");
-    
-    sprintf(pname,"mlb_%s",suffix.c_str());
-    sprintf(ylabel, "Events / %i", int(hMlb[ich][0]->GetBinWidth(1)));
-    CPlot plotMlb(pname,"","M_{(l,b)} [GeV]",ylabel);
-    plotMlb.AddHist1D(hMlb[ich][isTT2L], samplev[isTT2L]->label, "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotMlb.Draw(c,true,"png");
-
-    sprintf(pname,"toppt_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hTopPtReco[ich][0]->GetBinWidth(1)));
-    CPlot plotTopPt(pname,"","top p_{T} [GeV]", ylabel);
-    // plotTopPt.AddHist1D(hTopPtReco[ich][isS100], "S 1 100 signal smear","histE", samplev[isS100]->linecolor,1,0,3);
-    plotTopPt.AddHist1D(hTopPtReco[ich][isTT2L],"t#bar{t} reco", "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotTopPt.AddHist1D(hTopPtGen[ich][isTT2L],"t#bar{t} gen", "histE", kMagenta+2,1,0,3);
-    plotTopPt.Draw(c,true,"png");
-    
-    sprintf(pname,"mtop1_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hMTop1Reco[ich][0]->GetBinWidth(1)));
-    CPlot plotMTop1(pname,"","M_{#bar{t}} [GeV]", ylabel);
-    // plotMTop1.AddHist1D(hMTop1Reco[ich][isS100], "S 1 100 signal smear","histE", samplev[isS100]->linecolor,1,0,3);
-    plotMTop1.AddHist1D(hMTop1Reco[ich][isTT2L],"t#bar{t} reco", "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotMTop1.AddHist1D(hMTop1Gen[ich][isTT2L],"t#bar{t} gen", "histE", kMagenta+2,1,0,3);
-    plotMTop1.Draw(c,true,"png");
-
-    sprintf(pname,"mtop2_%s",suffix.c_str());
-    sprintf(ylabel, "Events /%i", int(hMTop2Reco[ich][0]->GetBinWidth(1)));
-    CPlot plotMTop2(pname,"","M_{t} [GeV]", ylabel);
-    // plotMTop2.AddHist1D(hMTop2Reco[ich][isS100], "S 1 100 signal smear","histE", samplev[isS100]->linecolor,1,0,3);
-    plotMTop2.AddHist1D(hMTop2Reco[ich][isTT2L],"t#bar{t} reco", "histE", samplev[isTT2L]->linecolor,1,0,3);
-    plotMTop2.AddHist1D(hMTop2Gen[ich][isTT2L],"t#bar{t} gen", "histE", kMagenta+2,1,0,3);
-    plotMTop2.Draw(c,true,"png");
-
-    sprintf(pname,"nu1pt_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i", int(hNu1Pt[ich][0]->GetBinWidth(1)));
-    CPlot plotNu1Pt(pname, "", "#bar{#nu} p_{T} [GeV]",ylabel);
-    plotNu1Pt.AddHist1D(hNu1Pt[ich][isTT2L],"ttbar smear","histE",samplev[isTT2L]->linecolor,1,0,3);
-    plotNu1Pt.AddHist1D(hNu1GenPt[ich][isTT2L],"ttbar gen","histE",kPink+7,1,0,3);
-    plotNu1Pt.Draw(c,true,"png");
-
-    sprintf(pname,"nu2pt_%s",suffix.c_str());
-    sprintf(ylabel,"Events / %i", int(hNu2Pt[ich][0]->GetBinWidth(1)));
-    CPlot plotNu2Pt(pname, "", "#nu p_{T} [GeV]",ylabel);
-    plotNu2Pt.AddHist1D(hNu2Pt[ich][isTT2L],"ttbar smear","histE",samplev[isTT2L]->linecolor,1,0,3);
-    plotNu2Pt.AddHist1D(hNu2GenPt[ich][isTT2L],"ttbar gen","histE",kPink+7,1,0,3);
-    plotNu2Pt.Draw(c,true,"png");
-
-  }
+  
 }

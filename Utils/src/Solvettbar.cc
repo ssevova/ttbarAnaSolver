@@ -80,7 +80,7 @@ FitSolution Solvettbar::SolveNu( FitSolution & fitsol, ttbarCandidate & ttbarcan
 
   double q_coeff[5], q_sol[4]; double q_disc[1];
 
-  FindCoeff(l1vec, l2vec, b1vec, b2vec, genTop1.M(), genTop2.M(), q_coeff);
+  FindCoeff(l1vec, l2vec, b1vec, b2vec, genTop1Mass, genTop2Mass, q_coeff);
 
   //get the number of solutions taking into account the coefficients
   int Nsol = quartic(q_coeff, q_sol, q_disc);
@@ -121,10 +121,10 @@ void Solvettbar::SetConstraints(const double xx, const double yy)
   // std::cout << "pymiss constraint: " << pymiss << std::endl;
 }
 
-void Solvettbar::SetGenTops(const TLorentzVector & gentop1, const TLorentzVector & gentop2)
+void Solvettbar::SetGenTopMass(const double genMtop1, const double genMtop2)
 {
-  genTop1 = gentop1; 
-  genTop2 = gentop2;
+  genTop1Mass = genMtop1; 
+  genTop2Mass = genMtop2;
 }
 
 void Solvettbar::SetWMass(const double w1mass, const double w2mass){
@@ -490,7 +490,7 @@ double Solvettbar::WeightSolfromMC() const
 {
   double weight = 1;
 
-  weight = 1-fabs(1-top1vec.M()/genTop1.M())*fabs(1-top2vec.M()/genTop2.M());
+  weight = 1-fabs(1-top1vec.M()/genTop1Mass)*fabs(1-top2vec.M()/genTop2Mass);
   // weight = (((top1vec.M() > genTop1.M()) ? genTop1.M()/top1vec.M() : top1vec.M()/genTop1.M())
   // 	    *((top2vec.M() > genTop2.M())? genTop2.M()/top2vec.M() : top2vec.M()/genTop2.M()));
   return weight;

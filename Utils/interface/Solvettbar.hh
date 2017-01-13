@@ -25,7 +25,7 @@ public:
   // void SmearMet( TLorentzVector & metvec, JetResolutions & myres );
   // FitSolution Solve( FitSolution & fitsol, ttbarCandidate & ttbarcand);
   FitSolution SolveNu( FitSolution & fitsol, ttbarCandidate & ttbarcand);
-  void SetGenTops(const TLorentzVector & gentop1, const TLorentzVector & gentop2);
+  void SetGenTopMass(const double genMtop1, const double genMtop2);
   void SetWMass(const double w1mass, const double w2mass);
 public:
   double dis;
@@ -64,7 +64,7 @@ private:
   const float topmass_end;
   const float topmass_step;
 
-  TLorentzVector genTop1, genTop2;
+  double genTop1Mass, genTop2Mass;
   double mw1, mw2;
   const double mb;
 
