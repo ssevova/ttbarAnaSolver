@@ -94,7 +94,7 @@ FitSolution Solvettbar::SolveNu( FitSolution & fitsol, ttbarCandidate & ttbarcan
     n1vec.SetPtEtaPhiM(neu1vec.Pt(), neu1vec.Eta(), neu1vec.Phi(), neu1vec.M());
     n2vec.SetPtEtaPhiM(neu2vec.Pt(), neu2vec.Eta(), neu2vec.Phi(), neu2vec.M());
     
-    double weight = WeightSolfromMC();//WeightSolfromShape();//   
+    double weight = WeightSolfromShape();//   WeightSolfromMC();//
     fitsol.weight.push_back(weight);
     fitsol.cudisc.push_back(q_disc[0]);
     fitsol.nu1.push_back(n1vec); 
